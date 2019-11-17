@@ -1,14 +1,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 #define N_CARDSET			1
 #define N_CARD				52
 
+
+#define N_MAX_USER			5
+
+
+//card tray object
 int CardTray[N_CARDSET*N_CARD] = { 1,2,3,4,5,6,7,8,9,10,10,10,10,
     1,2,3,4,5,6,7,8,9,10,10,10,10,
     1,2,3,4,5,6,7,8,9,10,10,10,10,
     1,2,3,4,5,6,7,8,9,10,10,10,10 };           //Leaving the role of the getCardnum function out to see if the program starts well. We're going to put it inside when it goes any further.
 int Ace = 0;
+
+
+//player info
+int dollar[N_MAX_USER];						//dollars that each player has
+int n_user;									//number of users
+
+
+//it's role is instead of scanf function.
+int getIntegerInput(void) 
+{
+    int input, num;
+    
+    num = scanf("%d", &input);
+    fflush(stdin);
+    if (num != 1) //if it fails to get integer
+        input = -1;
+    
+    return input;
+}
+
+
+//card processing functions ---------------
+
 //calculate the actual card number in the blackjack game
 int getCardNum(int cardnum) 
 {
@@ -117,8 +146,26 @@ void printCard(int cardnum)
 		printf("DIAJack\n");
 	}
 }
+
+
+//playing game functions -----------------------------
+
+//player settiing
+int configUser(void) 
+{
+	do
+	{
+		printf("Input the number of players (MAX:5):");
+		scanf("%d", &n_user);
+	}		
+	while(n_user>N_MAX_USER);
+	
+	return n_user;
+}
 int main(void) 
 {
+	int i;
+	i = configUser();
     int cardnum;
    	for (cardnum=0;cardnum<N_CARD;cardnum++)
 	printCard(cardnum);
