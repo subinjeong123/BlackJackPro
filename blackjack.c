@@ -5,9 +5,16 @@
 
 #define N_CARDSET			1
 #define N_CARD				52
+#define N_DOLLAR			50
 
 
+#define N_MAX_CARDNUM		13
 #define N_MAX_USER			5
+#define N_MAX_CARDHOLD		10
+#define N_MAX_GO			17
+#define N_MAX_BET			5
+
+#define N_MIN_ENDCARD		30
 
 
 //card tray object
@@ -25,20 +32,22 @@ int cardIndex = 0;
 int dollar[N_MAX_USER];						//dollars that each player has
 int n_user;									//number of users
 int roundnum;
-int cardcnt = n_user*2;
 
 
 //play yard information
 int cardhold[N_MAX_USER+1][N_MAX_CARDHOLD];	//cards that currently the players hold
 int cardSum[N_MAX_USER];					//sum of the cards
 int bet[N_MAX_USER];						//current betting 
+int gameEnd = 0; 							//game end flag
+
 
 //some utility functions
 
 //get an integer input from standard input (keyboard)
 //return : input integer value
 //         (-1 is returned if keyboard input was not integer)
-int getIntegerInput(void) {
+int getIntegerInput(void) 
+{
     int input, num;
     
     num = scanf("%d", &input);
@@ -186,15 +195,21 @@ void mixCardTray(int CardTray[N_CARDSET*N_CARD])
 		}
 	}
 }
+
 //get one card from the tray
 int pullCard(int cardresult)
 {
 	int i;
 	cardresult = swit[i];
 	i++;
-	cardindex++;
+	cardIndex++;
+	if(cardIndex>=52)
+	{
+		gameEnd++;
+	}
 	return cardresult;
 }
+
 
 //playing game functions -----------------------------
 
@@ -213,7 +228,7 @@ int configUser(void)
 
 
 //betting
-int betDollar(void) 
+int betDollar(int i) 
 {
 	printf("------------------------------------------------\n");
 	printf("------------ ROUND %d (cardIndex:%d)--------------------------\n", roundnum, cardIndex ); //좀있다가 메인함수로 옮기기//
@@ -224,7 +239,7 @@ int betDollar(void)
 	scanf("%d", &bet[1]);
 	if (bet[1]>dollar[1])
 	{
-		printf("  -> you only have $50! bet again")
+		printf("  -> you only have $50! bet again");
 		do
 		{
 			printf("  -> your betting (total:$%d) :  ");
@@ -235,25 +250,25 @@ int betDollar(void)
 	for(i = 2; i < n_user; i++)
 	{
 		int randbet[i];
-		randbet[i] = rand(() % 9 + 1);
+		randbet[i] = rand() % 9 + 1;
 		if (randbet[i] > dollar[i])
 		{
-			bet[i] = dollar[i]
+			bet[i] = dollar[i];
 		}
 		else
 		{
-			bet[i] = randbet[i]
+			bet[i] = randbet[i];
 		}
 	}
 }
-	
+
 
 //offering initial 2 cards
-void offerCards(void) 
+void offerCards()
 {
 	int i;
 	//1. give two card for each players
-	for (i=1;i<=n_user;i++)
+	for (i=1;i<n_user;i++)
 	{
 		cardhold[i][0] = pullCard();
 		cardhold[i][1] = pullCard();
@@ -265,29 +280,48 @@ void offerCards(void)
 	return;
 }
 
-//print initial card status
-void printCardInitialStatus(void) 
+
+void printUserCardStatus(int user, int cardcnt) 
 {
-	printf(" ----------- CARD OFFERING ---------------\n");
-	printf(" --- server      : ");
-	printf("X ");
-	printCard(int cardhold[0][1]);
-	printf("   -> you        : ");
-	printCard(int cardhold[1][0])
-	printCard(int cardhold[1][1])
-	for(i=2;i<n_user;i++)
-	{
+	int i;
 	
-		printf("   -> player %d   :", i)
-		printCard(int cardhold[i][0])
-		printCard(int cardhold[i][0])
-		print("\n")
-	}
+	printf("   -> card : ");
+	for (i=0;i<cardcnt;i++)
+		printCard(cardhold[user][i]);
+	printf("\t ::: ");
 }
 
-int getAction(void) 
+
+int getAction(int i) 
 {
-	if()
+	if(i=1)
+	{
+		printf("        ::: Action? (0 - go, others - stay) :0");
+		int gostop;
+		scanf("%d", &gostop);
+		if(gostop=0)
+		{
+			cardhold[i][cardcnt] = pullCard();
+		}
+		else
+		{
+			break;
+		}
+	}
+	else
+	{
+		if(cardsum[i]>=N_MAX_GO)
+		{
+			printf("        ::: STAY!\n");
+			break;
+		}
+		else
+		{
+			printf("        ::: GO!\n");
+			cardhold[i][cardcnt] = pullCard();
+		}
+		
+	}
 }
 
 
@@ -304,29 +338,49 @@ void printUserCardStatus(int user, int cardcnt)
 
 
 
+int TestHalt()
+{
+	cardcnt++;
+	cardindex = cardindex + 1;
+	if(cardIndex>=N_CARDSET*N_CARD)
+	printf("card ran out of the tray!! finishing the game....")
+	break;
+}
+
+
+
 // calculate the card sum and see if : 1. under 21, 2. over 21, 3. blackjack
-int calcStepResult() 
+int calcStepResult(int i) 
 {
-
-}
-
-int checkResult() 
-{
-	int i;
-	for(i =1; i < n_user; i++)
+	int j;
+	cardsum[i]=0;
+	for(j=0;j<=cardcnt;j++)
 	{
-		if (cardSum[i] = 21)
-		{
-			dollar[i] = dollar[i] + bet[i] * 2
-		}
-		else if(cardSum[i] > 21)
-		{
-			dollar[i] = dollar[i] - bet[i]
-		}
-		else if
+		cardsum[i] +=cardhold[i][j]
+	}
+	if(cardsum[i]==21)
+	{
+		dollar[i] = dollar[i] + bet[i] * 2;
+		printf("          ::: Black Jack!congratulation, you win!! --> +$%d ($%d)\n", 2*bet[i], dollar[i]);
+		break;
+	}
+	else if(cardsum[i]>=21)
+	{
+		dollar[i] = dollar[i] - bet[i];
+		printf("          ::: DEAD (sum:%d) --> -$%d ($%d)", cardsum[i], bet[i], dollar[i]);
+		break;
+	}
+	else
+	getAction(int i);                   //GO? STOP? ::: getAction()
 }
 
-int checkWinner() {
+int checkResult(int gameEnd) 
+{
+	
+}
+
+int checkWinner() 
+{
 	
 }
 
@@ -336,56 +390,15 @@ int main(int argc, char *argv[]) {
 	int roundIndex = 0;
 	int max_user;
 	int i;
-	int j;
 	
 	srand((unsigned)time(NULL));
 	
 	//set the number of players
-	j = configUser();
+	configUser();
 
 
 	//Game initialization --------
 	//1. players' dollar
-	
-	//2. card tray
-	mixCardTray(CardTray[N_CARDSET*N_CARD]);
-
-
-
-	//Game start --------
-	do {
-		
-		betDollar();
-		offerCards(); //1. give cards to all the players
-		
-		printCardInitialStatus();
-		printf("\n------------------ GAME start --------------------------\n");
-		
-		//each player's turn
-		for () //each player
-		{
-			while () //do until the player dies or player says stop
-			{
-				//print current card status printUserCardStatus();
-				//check the card status ::: calcStepResult()
-				//check if the turn ends or not
-			}
-		}
-		
-		//result
-		checkResult();
-	} while (gameEnd == 0);
-	
-	checkWinner();
-	
-	
-	return 0;
-}
-int main(void) 
-{
-	int i;
-	i = configUser();
-    //1. players' dollar
 	
 	//2. card tray
 	getCardNum();
@@ -424,4 +437,3 @@ int main(void)
 	
 	return 0;
 }
-
